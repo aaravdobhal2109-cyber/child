@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ditya's Magical World</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #2c3e50, #8e44ad);
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+            color: #ecf0f1;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        h1 {
+            font-size: 3.5em;
+            margin-top: 20px;
+            text-shadow: 3px 3px #34495e;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png');
+            z-index: -1;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 1.5em;
+            color: #bdc3c7;
+        }
+        .garden {
+            margin-top: 30px;
+            position: relative;
+            width: 95%;
+            height: 500px;
+            background: linear-gradient(to top, #34495e, #2c3e50);
+            border: 3px solid #8e44ad;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .enemy {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: url('https://cdn-icons-png.flaticon.com/512/1055/1055646.png') no-repeat center/contain;
+            cursor: pointer;
+            animation: move-enemy 3s linear infinite;
+        }
+        @keyframes move-enemy {
+            0% {
+                transform: translate(0, 0);
+            }
+            25% {
+                transform: translate(50px, 100px);
+            }
+            50% {
+                transform: translate(-50px, -100px);
+            }
+            75% {
+                transform: translate(100px, -50px);
+            }
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+        .burst {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, red, orange, yellow, green, blue, indigo, violet);
+            animation: burst-animation 1s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes burst-animation {
+            0% {
+                transform: scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+        .counter, .timer {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #ecf0f1;
+        }
+        .start-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background: #8e44ad;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .start-button:hover {
+            background: #9b59b6;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+    <h1>Welcome to Ditya's Magical World!</h1>
+    <div class="container">
+        <p>Hi Ditya! This is your special website filled with magic and fun!</p>
+        <p>Enjoy the stars and colors made just for you!</p>
+    </div>
+
+    <!-- Garden Game -->
+    <div class="container">
+        <h2>Shoot the Moving Enemies!</h2>
+        <button class="start-button" onclick="startGame()">Start Game</button>
+        <div class="garden" id="garden" style="display: none;"></div>
+        <div class="counter" id="scoreCounter" style="display: none;">Score: 0</div>
+        <div class="timer" id="timer" style="display: none;">Time Left: 2:00</div>
+    </div>
+
+    <div class="footer">Made with ❤️ for Ditya</div>
+
+    <script>
+        let score = 0;
+        let timeLeft = 120; // 2 minutes in seconds
+        let gameInterval;
+        let timerInterval;
+        let enemySpeed = 3000; // Initial enemy speed in milliseconds
+
+        function startGame() {
+            document.getElementById('garden').style.display = 'block';
+            document.getElementById('scoreCounter').style.display = 'block';
+            document.getElementById('timer').style.display = 'block';
+            document.querySelector('.start-button').style.display = 'none';
+
+            gameInterval = setInterval(addEnemy, enemySpeed); // Add enemies
+            timerInterval = setInterval(updateTimer, 1000); // Update timer
+        }
+
+        function addEnemy() {
+            const garden = document.getElementById('garden');
+            const enemy = document.createElement('div');
+            enemy.className = 'enemy';
+
+            // Ensure enemies don't go beyond the edges
+            const maxLeft = garden.offsetWidth - 60;
+            const maxTop = garden.offsetHeight - 60;
+            enemy.style.left = Math.random() * maxLeft + 'px';
+            enemy.style.top = Math.random() * maxTop + 'px';
+
+            enemy.onclick = shootEnemy;
+            garden.appendChild(enemy);
+
+            // Automatically remove enemy after 5 seconds if not clicked
+            setTimeout(() => {
+                if (enemy.parentElement) {
+                    enemy.remove();
+                }
+            }, 5000);
+        }
+
+        function shootEnemy(event) {
+            const enemy = event.target;
+            const garden = document.getElementById('garden');
+
+            // Create burst effect
+            const burst = document.createElement('div');
+            burst.className = 'burst';
+            burst.style.left = enemy.style.left;
+            burst.style.top = enemy.style.top;
+            garden.appendChild(burst);
+
+            // Remove enemy and burst after animation
+            setTimeout(() => burst.remove(), 1000);
+            enemy.remove();
+
+            score++;
+            updateScore();
+
+            // Increase difficulty by reducing enemy speed every 10 points
+            if (score % 10 === 0 && enemySpeed > 1000) {
+                clearInterval(gameInterval);
+                enemySpeed -= 500;
+                gameInterval = setInterval(addEnemy, enemySpeed);
+            }
+        }
+
+        function updateScore() {
+            const counter = document.getElementById('scoreCounter');
+            counter.textContent = `Score: ${score}`;
+        }
+
+        function updateTimer() {
+            const timer = document.getElementById('timer');
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timer.textContent = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(gameInterval);
+                clearInterval(timerInterval);
+                alert(`Time's up! Your final score is: ${score}`);
+                resetGame();
+            }
+
+            timeLeft--;
+        }
+
+        function resetGame() {
+            document.getElementById('garden').style.display = 'none';
+            document.getElementById('scoreCounter').style.display = 'none';
+            document.getElementById('timer').style.display = 'none';
+            document.querySelector('.start-button').style.display = 'block';
+
+            score = 0;
+            timeLeft = 120;
+            enemySpeed = 3000;
+            updateScore();
+        }
+    </script>
+</body>
+</html>
